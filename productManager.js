@@ -1,4 +1,4 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 
 class ProductManager {
   constructor(path) {
@@ -9,46 +9,50 @@ class ProductManager {
     this.loadProducts();
   }
 
-  addProduct(newProduct) {
-    if (
-      !newProduct.title ||
-      !newProduct.description ||
-      !newProduct.price ||
-      !newProduct.thumbnail ||
-      !newProduct.code ||
-      !newProduct.stock
-    ) {
-      console.log('Todos los campos son obligatorios. No se pudo agregar el producto.');
-      return;
+  async addProduct(newProduct) {
+    try {
+      if (
+        !newProduct.title ||
+        !newProduct.description ||
+        !newProduct.price ||
+        !newProduct.thumbnail ||
+        !newProduct.code ||
+        !newProduct.stock
+      ) {
+        console.log('Todos los campos son obligatorios. No se pudo agregar el producto.');
+        return;
+      }
+
+      const isCodeDuplicate = this.products.some(product => product.code === newProduct.code);
+      if (isCodeDuplicate) {
+        console.log(`Ya existe un producto con el código ${newProduct.code}. No se pudo agregar el producto.`);
+        return;
+      }
+
+      const productToAdd = {
+        id: this.productIdCounter++,
+        ...newProduct,
+      };
+
+      this.products.push(productToAdd);
+      console.log(`Producto "${productToAdd.title}" agregado con ID ${productToAdd.id}.`);
+
+      // guardar el nuevo producto en el archivo de forma asíncrona
+      await this.saveProducts();
+    } catch (error) {
+      console.error('Error al agregar producto:', error.message);
     }
-
-    const isCodeDuplicate = this.products.some(product => product.code === newProduct.code);
-    if (isCodeDuplicate) {
-      console.log(`Ya existe un producto con el código ${newProduct.code}. No se pudo agregar el producto.`);
-      return;
-    }
-
-    const productToAdd = {
-      id: this.productIdCounter++,
-      ...newProduct,
-    };
-
-    this.products.push(productToAdd);
-    console.log(`Producto "${productToAdd.title}" agregado con ID ${productToAdd.id}.`);
-
-    // guardar el nuevo producto en el archivo
-    this.saveProducts();
   }
 
-  getProducts() {
-    // leer el archivo y devolver todos los productos
-    this.loadProducts();
+  async getProducts() {
+    // leer el archivo de forma asíncrona y devolver todos los productos
+    await this.loadProducts();
     return this.products;
   }
 
-  getProductById(productId) {
-    // leer el archivo y buscar el prod por ID
-    this.loadProducts();
+  async getProductById(productId) {
+    // leer el archivo de forma asíncrona, buscar el prod por ID
+    await this.loadProducts();
     const foundProduct = this.products.find(product => product.id === productId);
 
     if (foundProduct) {
@@ -59,69 +63,77 @@ class ProductManager {
     }
   }
 
-  updateProduct(productId, updatedProduct) {
-    // leer el archivo, buscar el producto por ID y actualizarlo
-    this.loadProducts();
-    const indexToUpdate = this.products.findIndex(product => product.id === productId);
+  async updateProduct(productId, updatedProduct) {
+    try {
+      // leer el archivo de forma asíncrona, buscar el producto por ID y actualizarlo
+      await this.loadProducts();
+      const indexToUpdate = this.products.findIndex(product => product.id === productId);
 
-    if (indexToUpdate !== -1) {
-      // mantener el ID y actualizar el resto de las prop
-      this.products[indexToUpdate] = {
-        id: productId,
-        ...updatedProduct,
-      };
+      if (indexToUpdate !== -1) {
+        // mantener el ID y actualizar el resto de las propiedades
+        this.products[indexToUpdate] = {
+          id: productId,
+          ...updatedProduct,
+        };
 
-      // guardar los productos actualizados en el archivo
-      this.saveProducts();
+        // guardar los productos actualizados en el archivo de forma asíncrona
+        await this.saveProducts();
 
-      console.log(`Producto con ID ${productId} actualizado.`);
-    } else {
-      console.log(`Producto con ID ${productId} no encontrado. No se pudo actualizar.`);
+        console.log(`Producto con ID ${productId} actualizado.`);
+      } else {
+        console.log(`Producto con ID ${productId} no encontrado. No se pudo actualizar.`);
+      }
+    } catch (error) {
+      console.error('Error al actualizar producto:', error.message);
     }
   }
 
-  deleteProduct(productId) {
-    // leer el archivo, buscar el producto por ID y eliminarlo
-    this.loadProducts();
-    const indexToDelete = this.products.findIndex(product => product.id === productId);
+  async deleteProduct(productId) {
+    try {
+      // leer el archivo de forma asíncrona, buscar el producto por ID y eliminarlo
+      await this.loadProducts();
+      const indexToDelete = this.products.findIndex(product => product.id === productId);
 
-    if (indexToDelete !== -1) {
-      // eliminar el producto del array
-      this.products.splice(indexToDelete, 1);
+      if (indexToDelete !== -1) {
+        // eliminar el producto del array
+        this.products.splice(indexToDelete, 1);
 
-      // guardar los productos actualizados en el archivo
-      this.saveProducts();
+        // guardar los productos actualizados en el archivo de forma asíncrona
+        await this.saveProducts();
 
-      console.log(`Producto con ID ${productId} eliminado.`);
-    } else {
-      console.log(`Producto con ID ${productId} no encontrado. No se pudo eliminar.`);
+        console.log(`Producto con ID ${productId} eliminado.`);
+      } else {
+        console.log(`Producto con ID ${productId} no encontrado. No se pudo eliminar.`);
+      }
+    } catch (error) {
+      console.error('Error al eliminar producto:', error.message);
     }
   }
 
   // func para cargar productos desde el archivo al inicializar
-  loadProducts() {
+  async loadProducts() {
     try {
-      const fileContent = fs.readFileSync(this.path, 'utf8');
+      const fileContent = await fs.readFile(this.path, 'utf8');
       this.products = JSON.parse(fileContent);
     } catch (error) {
-      // manejar el error, por ej si el archivo no existe
+      // manejar el error, por ejemplo, si el archivo no existe
       console.error('Error al cargar productos:', error.message);
     }
   }
 
   // func para guardar productos en el archivo
-  saveProducts() {
+  async saveProducts() {
     try {
       const dataToWrite = JSON.stringify(this.products, null, 2);
-      fs.writeFileSync(this.path, dataToWrite, 'utf8');
+      await fs.writeFile(this.path, dataToWrite, 'utf8');
     } catch (error) {
-      // manejar el error, por ej si no se puede escribir en el archivo
+      // manejar el error, por ejemplo, si no se puede escribir en el archivo
       console.error('Error al guardar productos:', error.message);
     }
   }
 }
 
-module.exports = ProductManager; // Exportar la clase para usarla en otros archivos
+module.exports = ProductManager; // exportar la clase para usarla en otros archivos
 
 // instancia de ProductManager con la ruta del archivo
 const productManager = new ProductManager('./data/productos.json');
