@@ -1,28 +1,44 @@
 const express = require('express');
-const ProductManager = require('./productManager'); // Asegúrate de ajustar la ruta según tu estructura de archivos
+const ProductManager = require('./productManager'); 
 
 const app = express();
-const port = 3000; // Puedes cambiar el puerto según tus preferencias
+const port = 3000;
 
-// instancia de ProductManager con la ruta del archivo
 const productManager = new ProductManager('./data/productos.json');
 
-// endpoint para obtener productos
-app.get('/products', (req, res) => {
-  // obtener el parametro de límite de la consulta (?limit=)
-  const limit = req.query.limit;
+app.use(express.json());
 
-  // obtener produc desde ProductManager
-  const products = productManager.getProducts();
+// Endpoint para obtener todos los productos con o sin límite
+app.get('/products', async (req, res) => {
+  try {
+    const { limit } = req.query;
+    const products = await productManager.getProducts(parseInt(limit));
+    res.json(products);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error interno del servidor');
+  }
+});
 
-  // aplicar limite si se proporciona
-  const limitedProducts = limit ? products.slice(0, parseInt(limit)) : products;
+// Endpoint para obtener un producto por ID
+app.get('/products/:pid', async (req, res) => {
+  try {
+    const productId = parseInt(req.params.pid);
+    const product = await productManager.getProductById(productId);
 
-  // enviar los productos como respuesta
-  res.json({ products: limitedProducts });
+    if (product) {
+      res.json(product);
+    } else {
+      res.status(404).send(`Producto con ID ${productId} no encontrado`);
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error interno del servidor');
+  }
 });
 
 // iniciar el servidor
 app.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+

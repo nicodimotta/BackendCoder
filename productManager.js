@@ -44,11 +44,17 @@ class ProductManager {
     }
   }
 
-  async getProducts() {
+  async getProducts(limit) {
     // leer el archivo de forma asíncrona y devolver todos los productos
     await this.loadProducts();
-    return this.products;
+  
+    if (limit) {
+      return this.products.slice(0, limit);
+    } else {
+      return this.products;
+    }
   }
+  
 
   async getProductById(productId) {
     // leer el archivo de forma asíncrona, buscar el prod por ID
@@ -133,12 +139,38 @@ class ProductManager {
   }
 }
 
-module.exports = ProductManager; // exportar la clase para usarla en otros archivos
+// Exportar la clase para usarla en otros archivos
+module.exports = ProductManager;
 
-// instancia de ProductManager con la ruta del archivo
+// Instancia de ProductManager con la ruta del archivo
 const productManager = new ProductManager('./data/productos.json');
 
-// ... (código para agregar productos, imprimir lista, buscar por ID, etc.)
+// Agregar productos ficticios (mouse gaming)
+const mouseGaming1 = {
+  title: 'Razer Viper V2 Pro',
+  description: 'Mouse Gaming Razer Viper V2 Pro',
+  price: 120,
+  thumbnail: 'ruta/imagen1.jpg',
+  code: 'RVV2P',
+  stock: 20,
+};
+
+const mouseGaming2 = {
+  title: 'Logitech Superlight V2',
+  description: 'Mouse Gaming Logitech Superlight V2',
+  price: 150,
+  thumbnail: 'ruta/imagen2.jpg',
+  code: 'LSLV2',
+  stock: 15,
+};
+
+// Agregar los productos al ProductManager
+productManager.addProduct(mouseGaming1);
+productManager.addProduct(mouseGaming2);
+
+// Exportar la instancia de ProductManager
+module.exports = productManager;
+
 
 
 
