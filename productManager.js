@@ -139,13 +139,13 @@ class ProductManager {
   }
 }
 
-// Exportar la clase para usarla en otros archivos
+// exportar la clase para usarla en otros archivos
 module.exports = ProductManager;
 
-// Instancia de ProductManager con la ruta del archivo
+// instancia de ProductManager con la ruta del archivo
 const productManager = new ProductManager('./data/productos.json');
 
-// Agregar productos ficticios (mouse gaming)
+// agregar productos ficticios (mouse gaming)
 const mouseGaming1 = {
   title: 'Razer Viper V2 Pro',
   description: 'Mouse Gaming Razer Viper V2 Pro',
@@ -164,11 +164,11 @@ const mouseGaming2 = {
   stock: 15,
 };
 
-// Agregar los productos al ProductManager
+// agregar los productos al ProductManager
 productManager.addProduct(mouseGaming1);
 productManager.addProduct(mouseGaming2);
 
-// Exportar la instancia de ProductManager
+// exportar la instancia de ProductManager
 module.exports = productManager;
 
 
