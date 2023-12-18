@@ -2,19 +2,26 @@ const express = require('express');
 const router = express.Router();
 const productsController = require('../controllers/productsController');
 
-// Ruta raíz GET /api/products
+// ruta raíz GET /api/products
 router.get('/', productsController.getProducts);
 
-// Ruta GET /api/products/:pid
+// ruta GET /api/products/:pid
 router.get('/:pid', productsController.getProductById);
 
-// Ruta raíz POST /api/products
-router.post('/', productsController.addProduct);
+// ruta raíz POST /api/products
+router.post('/', (req, res) => {
+  // llamar al controlador y pasarle la instancia de io para emitir eventos de WebSocket
+  productsController.addProduct(req, res, req.app.get('io'));
+});
 
-// Ruta PUT /api/products/:pid
+// ruta PUT /api/products/:pid
 router.put('/:pid', productsController.updateProduct);
 
-// Ruta DELETE /api/products/:pid
-router.delete('/:pid', productsController.deleteProduct);
+// ruta DELETE /api/products/:pid
+router.delete('/:pid', (req, res) => {
+  // lamar al controlador y pasarle la instancia de io para emitir eventos de WebSocket
+  productsController.deleteProduct(req, res, req.app.get('io'));
+});
 
 module.exports = router;
+

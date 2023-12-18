@@ -1,10 +1,11 @@
 const fs = require('fs').promises;
 
 class ProductManager {
-  constructor(path) {
+  constructor(path, io) {
     this.products = [];
     this.productIdCounter = 1;
     this.path = path;
+    this.io = io; // Se agrega el objeto io para emitir eventos de WebSocket
     // cargar productos desde el archivo al inicializar la instancia
     this.loadProducts();
   }
@@ -37,10 +38,37 @@ class ProductManager {
       this.products.push(productToAdd);
       console.log(`Producto "${productToAdd.title}" agregado con ID ${productToAdd.id}.`);
 
+      // Emitir evento de WebSocket al agregar un producto
+      this.io.emit('productAdded', productToAdd);
+
       // guardar el nuevo producto en el archivo de forma asíncrona
       await this.saveProducts();
     } catch (error) {
       console.error('Error al agregar producto:', error.message);
+    }
+  }
+
+  async deleteProduct(productId) {
+    try {
+      // leer el archivo de forma asíncrona, buscar el producto por ID y eliminarlo
+      await this.loadProducts();
+      const indexToDelete = this.products.findIndex(product => product.id === productId);
+
+      if (indexToDelete !== -1) {
+        const deletedProduct = this.products.splice(indexToDelete, 1)[0];
+
+        // Emitir evento de WebSocket al eliminar un producto
+        this.io.emit('productDeleted', deletedProduct);
+
+        // guardar los productos actualizados en el archivo de forma asíncrona
+        await this.saveProducts();
+
+        console.log(`Producto con ID ${productId} eliminado.`);
+      } else {
+        console.log(`Producto con ID ${productId} no encontrado. No se pudo eliminar.`);
+      }
+    } catch (error) {
+      console.error('Error al eliminar producto:', error.message);
     }
   }
 
