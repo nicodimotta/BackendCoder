@@ -2,6 +2,7 @@ const express = require('express');
 const exphbs = require('express-handlebars');
 const http = require('http');
 const socketIO = require('socket.io');
+const mongoose = require('mongoose'); // Importar mongoose
 const ProductManager = require('./productManager');
 const productRouter = require('./routes/products');
 const cartRouter = require('./routes/carts');
@@ -10,6 +11,19 @@ const app = express();
 const server = http.createServer(app); // Crear el servidor HTTP utilizando express
 const io = socketIO(server); // Inicializar socket.io con el servidor HTTP
 const port = 8080;
+
+// Configuración de mongoose
+mongoose.connect('mongodb+srv://nicodimotta14:<password>@coder.pned8p5.mongodb.net/?retryWrites=true&w=majority', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+
+const db = mongoose.connection;
+
+db.on('error', console.error.bind(console, 'Error de conexión a MongoDB:'));
+db.once('open', () => {
+  console.log('Conexión exitosa a MongoDB.');
+});
 
 const productManager = new ProductManager('./data/productos.json');
 
@@ -61,6 +75,7 @@ app.get('/realtimeproducts', (req, res) => {
 server.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+
 
 
 
