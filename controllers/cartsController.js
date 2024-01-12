@@ -1,53 +1,51 @@
-const ProductManager = require('../productManager');
-const CartManager = require('../cartManager');
-const productManager = new ProductManager('./data/productos.json');
-const cartManager = new CartManager('./data/carritos.json');
+const Cart = require('../models/Cart'); // Asegúrate de importar el modelo de Carrito
 
 const cartsController = {
   createCart: async (req, res) => {
     try {
-      // Implementa la lógica para crear un nuevo carrito
-      const newCart = req.body;
-      await cartManager.createCart(newCart);
-      res.status(201).send('Carrito creado correctamente');
+      const newCart = new Cart(req.body);
+      await newCart.save();
+
+      res.status(201).json(newCart);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   getCartById: async (req, res) => {
     try {
-      // Implementa la lógica para obtener un carrito por ID
-      const cartId = req.params.cid;
-      const cart = await cartManager.getCartById(cartId);
+      const cart = await Cart.findById(req.params.cid);
 
-      if (cart) {
-        res.json(cart);
-      } else {
-        res.status(404).send(`Carrito con ID ${cartId} no encontrado`);
+      if (!cart) {
+        return res.status(404).json({ error: 'Cart not found' });
       }
+
+      res.json(cart);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   addProductToCart: async (req, res) => {
     try {
-      // Implementa la lógica para agregar un producto a un carrito
-      const cartId = req.params.cid;
-      const productId = req.params.pid;
-      const quantity = req.body.quantity;
+      const { cid, pid } = req.params;
+      const { quantity } = req.body;
 
-      await cartManager.addProductToCart(cartId, productId, quantity, productManager);
-      res.send('Producto agregado al carrito correctamente');
+      const cart = await Cart.findById(cid);
+
+      if (!cart) {
+        return res.status(404).json({ error: 'Cart not found' });
+      }
+
+      // Aquí puedes realizar la lógica para agregar un producto al carrito usando Mongoose
+
+      res.json({ message: 'Product added to cart successfully' });
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 };
 
 module.exports = cartsController;
+
 

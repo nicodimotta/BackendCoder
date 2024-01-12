@@ -1,75 +1,73 @@
-const ProductManager = require('../productManager');
-const productManager = new ProductManager('./data/productos.json');
+const Product = require('../models/Product'); // Asegúrate de importar el modelo de Producto
 
 const productsController = {
   getProducts: async (req, res) => {
     try {
-      // Implementa la lógica para obtener todos los productos
-      const { limit } = req.query;
-      const products = await productManager.getProducts(parseInt(limit));
+      const products = await Product.find();
       res.json(products);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   getProductById: async (req, res) => {
     try {
-      // Implementa la lógica para obtener un producto por ID
-      const productId = parseInt(req.params.pid);
-      const product = await productManager.getProductById(productId);
+      const product = await Product.findById(req.params.pid);
 
-      if (product) {
-        res.json(product);
-      } else {
-        res.status(404).send(`Producto con ID ${productId} no encontrado`);
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
       }
+
+      res.json(product);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   addProduct: async (req, res) => {
     try {
-      // Implementa la lógica para agregar un nuevo producto
-      // Puedes acceder a los datos del cuerpo usando req.body
-      // Recuerda validar los campos antes de agregar el producto
-      const newProduct = req.body;
-      await productManager.addProduct(newProduct);
-      res.status(201).send('Producto agregado correctamente');
+      const newProduct = new Product(req.body);
+      await newProduct.save();
+
+      res.status(201).json(newProduct);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   updateProduct: async (req, res) => {
     try {
-      // Implementa la lógica para actualizar un producto por ID
-      const productId = parseInt(req.params.pid);
+      const { pid } = req.params;
       const updatedProduct = req.body;
-      await productManager.updateProduct(productId, updatedProduct);
-      res.send('Producto actualizado correctamente');
+
+      const product = await Product.findByIdAndUpdate(pid, updatedProduct, { new: true });
+
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      res.json(product);
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 
   deleteProduct: async (req, res) => {
     try {
-      // Implementa la lógica para eliminar un producto por ID
-      const productId = parseInt(req.params.pid);
-      await productManager.deleteProduct(productId);
-      res.send('Producto eliminado correctamente');
+      const { pid } = req.params;
+      const product = await Product.findByIdAndRemove(pid);
+
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+
+      res.json({ message: 'Product deleted successfully' });
     } catch (error) {
-      console.error(error);
-      res.status(500).send('Error interno del servidor');
+      res.status(500).json({ error: 'Internal Server Error' });
     }
   },
 };
 
 module.exports = productsController;
+
 
