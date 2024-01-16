@@ -1,4 +1,5 @@
-const Product = require('../models/Product'); // Asegúrate de importar el modelo de Producto
+const Product = require('../dao/models/Product');
+
 
 const productsController = {
   getProducts: async (req, res) => {
