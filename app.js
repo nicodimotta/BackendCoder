@@ -3,8 +3,9 @@ const exphbs = require('express-handlebars');
 const http = require('http');
 const socketIO = require('socket.io');
 const mongoose = require('mongoose');
-const { Product, Cart, Message } = require('./dao/mongo/mongoController');
-const productRouter = require('./routes/products');
+const Product = require('./dao/models/Product');
+const Cart = require('./dao/models/Cart');
+const productsRouter = require('./routes/products');
 const cartRouter = require('./routes/carts');
 
 const app = express();
@@ -18,7 +19,6 @@ mongoose.connect('mongodb+srv://nicodimotta14:<codernico2024>@coder.pned8p5.mong
   useUnifiedTopology: true,
 });
 
-
 const db = mongoose.connection;
 
 db.on('error', console.error.bind(console, 'Error de conexión a MongoDB:'));
@@ -27,14 +27,14 @@ db.once('open', () => {
 });
 
 // Configuración de handlebars
-app.engine('handlebars', exphbs());
-app.set('view engine', 'handlebars');
+app.engine('hbs', exphbs({ extname: 'hbs' }));
+app.set('view engine', 'hbs');
 
 // Rutas para productos
-app.use('/api/products', productRouter(Product));
+app.use('/products', productsRouter);
 
 // Rutas para carritos
-app.use('/api/carts', cartRouter(Cart));
+app.use('/api/carts', cartRouter);
 
 // Configuración de Socket.IO
 io.on('connection', (socket) => {
@@ -89,6 +89,7 @@ app.get('/realtimeproducts', async (req, res) => {
 server.listen(port, () => {
   console.log(`Servidor escuchando en http://localhost:${port}`);
 });
+
 
 
 

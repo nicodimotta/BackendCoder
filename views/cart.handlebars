@@ -1,0 +1,81 @@
+<!-- views/cart.handlebars -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras</title>
+</head>
+<body>
+    <h1>Carrito de Compras</h1>
+    
+    {{#if cart}}
+        <ul>
+            {{#each cart.products}}
+                <li>
+                    <h2>{{this.productId.title}}</h2>
+                    <p>Cantidad: {{this.quantity}}</p>
+                    <p>Precio unitario: ${{this.productId.price}}</p>
+                    <!-- Agrega otros detalles del producto según tus necesidades -->
+                    <button onclick="updateProductQuantity('{{this.productId._id}}')">Actualizar Cantidad</button>
+                    <button onclick="removeProduct('{{this.productId._id}}')">Eliminar del Carrito</button>
+                </li>
+            {{/each}}
+        </ul>
+        <p>Total: ${{calculateTotal(cart.products)}}</p>
+    {{else}}
+        <p>El carrito está vacío.</p>
+    {{/if}}
+
+    <script>
+      function updateProductQuantity(productId) {
+        const newQuantity = prompt('Ingrese la nueva cantidad:');
+        if (newQuantity !== null && !isNaN(newQuantity)) {
+          // Realiza una solicitud al servidor para actualizar la cantidad del producto en el carrito
+          fetch(`/api/carts/${cartId}/products/${productId}`, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ quantity: parseInt(newQuantity, 10) }),
+          })
+          .then(response => response.json())
+          .then(data => {
+            // Actualiza la vista con la nueva información del carrito
+            console.log('Cantidad actualizada:', data);
+            location.reload();
+          })
+          .catch(error => {
+            console.error('Error al actualizar cantidad:', error);
+          });
+        }
+      }
+
+      function removeProduct(productId) {
+        // Realiza una solicitud al servidor para eliminar el producto del carrito
+        fetch(`/api/carts/${cartId}/products/${productId}`, {
+          method: 'DELETE',
+        })
+        .then(response => response.json())
+        .then(data => {
+          // Actualiza la vista con la nueva información del carrito
+          console.log('Producto eliminado:', data);
+          location.reload();
+        })
+        .catch(error => {
+          console.error('Error al eliminar producto:', error);
+        });
+      }
+
+      function calculateTotal(products) {
+        // Implementa la lógica para calcular el total del carrito según tus necesidades
+        return products.reduce((total, product) => {
+          return total + product.productId.price * product.quantity;
+        }, 0);
+      }
+    </script>
+</body>
+</html>
+
+

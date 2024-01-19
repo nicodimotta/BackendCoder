@@ -49,7 +49,7 @@ const productsController = {
         nextLink: hasNextPage ? `/api/products?limit=${limit}&page=${page + 1}` : null,
       };
 
-      res.json(response);
+      res.render('products', { products });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal Server Error' });

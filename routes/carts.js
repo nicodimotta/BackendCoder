@@ -10,6 +10,11 @@ router.put('/:cid', cartsController.updateCart);
 router.put('/:cid/products/:pid', cartsController.updateProductQuantity);
 router.delete('/:cid', cartsController.deleteAllProductsFromCart);
 
+// Agrega una nueva ruta para la vista del carrito
+router.get('/:cid/view', cartsController.viewCart);
+
 module.exports = router;
+
+
 
 

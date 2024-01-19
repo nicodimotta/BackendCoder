@@ -1,5 +1,5 @@
-const Cart = require('../models/Cart');
-const Product = require('../models/Product');
+const Cart = require('../dao/models/Cart');
+const Product = require('../dao/models/Product');
 
 const cartsController = {
   createCart: async (req, res) => {
@@ -21,7 +21,8 @@ const cartsController = {
         return res.status(404).json({ error: 'Cart not found' });
       }
 
-      res.json(cart);
+      // Renderiza la vista 'cart' y pasa el carrito como contexto
+      res.render('cart', { cart });
     } catch (error) {
       res.status(500).json({ error: 'Internal Server Error' });
     }
