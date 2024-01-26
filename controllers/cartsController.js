@@ -131,6 +131,24 @@ const cartsController = {
   },
 };
 
+updateCart: async (req, res) => {
+  try {
+    const { cid } = req.params;
+    const updatedCart = req.body;
+
+    const cart = await Cart.findByIdAndUpdate(cid, updatedCart, { new: true });
+
+    if (!cart) {
+      return res.status(404).json({ error: 'Cart not found' });
+    }
+
+    res.json({ message: 'Cart updated successfully', cart });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+},
+
+
 module.exports = cartsController;
 
 
