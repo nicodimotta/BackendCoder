@@ -30,6 +30,19 @@ module.exports = (passport) => {
     res.redirect('/');
   });
 
+  // Ruta de autenticación de GitHub
+  router.get('/github', passport.authenticate('github'));
+
+  // Callback de autenticación de GitHub
+  router.get('/github/callback', 
+    passport.authenticate('github', { failureRedirect: '/' }),
+    (req, res) => {
+      // Redirige a la vista de productos después de la autenticación de GitHub
+      res.redirect('/products');
+    }
+  );
+
   return router;
 };
+
 
