@@ -1,10 +1,9 @@
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
-const GitHubStrategy = require('passport-github').Strategy;
 const User = require('../models/User');
 const bcrypt = require('bcrypt');
 
-// Estrategia local para registro
+// estrategia local para registro
 passport.use(
   'local-register',
   new LocalStrategy(
@@ -33,30 +32,26 @@ passport.use(
   )
 );
 
-// Estrategia de GitHub
+// estrategia local para inicio de sesión
 passport.use(
-  new GitHubStrategy(
-    {
-      clientID: 'tu-client-id-de-GitHub',
-      clientSecret: 'tu-client-secret-de-GitHub',
-      callbackURL: 'http://localhost:8080/auth/github/callback', // Ajusta la URL de acuerdo a tu configuración
-    },
-    async (accessToken, refreshToken, profile, done) => {
+  'local-login',
+  new LocalStrategy(
+    { usernameField: 'email' },
+    async (email, password, done) => {
       try {
-        const existingUser = await User.findOne({ githubId: profile.id });
+        const user = await User.findOne({ email });
 
-        if (existingUser) {
-          return done(null, existingUser);
+        if (!user) {
+          return done(null, false, { message: 'Usuario no encontrado' });
         }
 
-        const newUser = new User({
-          githubId: profile.id,
-          email: profile.emails[0].value,
-          // podes agregar más campos segun la info que desees obtener de GitHub
-        });
+        const isValidPassword = await bcrypt.compare(password, user.password);
 
-        await newUser.save();
-        return done(null, newUser);
+        if (!isValidPassword) {
+          return done(null, false, { message: 'Contraseña incorrecta' });
+        }
+
+        return done(null, user);
       } catch (error) {
         return done(error);
       }
@@ -64,6 +59,7 @@ passport.use(
   )
 );
 
+// serialización y deserialización de usuarios
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -76,5 +72,10 @@ passport.deserializeUser(async (id, done) => {
     done(error);
   }
 });
+
+
+module.exports = passport;
+
+
 
 

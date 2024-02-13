@@ -2,45 +2,42 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
+  first_name: String,
+  last_name: String,
   email: {
     type: String,
     required: true,
     unique: true,
   },
+  age: Number,
   password: {
     type: String,
     required: true,
   },
+  cart: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cart'
+  },
   role: {
     type: String,
-    default: 'usuario', // x defecto todos los usuarios tendrán el rol 'usuario'
-  },
+    default: 'user'
+  }
 });
 
-// metodo para hashear la contraseña antes de guardar el usuario
+// Método para hashear la contraseña antes de guardar el usuario
 userSchema.pre('save', async function (next) {
-  const user = this;
-  if (user.isModified('password')) {
-    try {
-      user.password = await bcrypt.hash(user.password, 10); // 10 es el costo del hash
-      next();
-    } catch (error) {
-      next(error);
-    }
-  } else {
+  try {
+    if (!this.isModified('password')) return next();
+    const hashedPassword = await bcrypt.hash(this.password, 10);
+    this.password = hashedPassword;
     next();
+  } catch (error) {
+    next(error);
   }
 });
-
-userSchema.methods.isValidPassword = async function (password) {
-  try {
-    return await bcrypt.compare(password, this.password);
-  } catch (error) {
-    throw new Error(error);
-  }
-};
 
 const User = mongoose.model('User', userSchema);
 
 module.exports = User;
+
 
