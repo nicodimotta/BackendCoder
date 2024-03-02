@@ -1,10 +1,8 @@
-const productService = require('../services/productService');
+const Product = require('../dao/models/Product');
 
-const productsController = {
-  getProducts: async (req, res) => {
+const productService = {
+  getProducts: async ({ limit = 10, page = 1, sort, query, category, availability }) => {
     try {
-      const { limit = 10, page = 1, sort, query, category, availability } = req.query;
-
       // Construir el objeto de búsqueda según los parámetros recibidos
       const searchQuery = {};
       if (category) searchQuery.category = category;
@@ -16,7 +14,7 @@ const productsController = {
       }
 
       // Realizar la búsqueda y ordenamiento de productos
-      let products = await productService.getProducts(searchQuery);
+      let products = await Product.find(searchQuery);
 
       // Ordenamiento de productos
       if (sort) {
@@ -49,71 +47,49 @@ const productsController = {
         nextLink: hasNextPage ? `/api/products?limit=${limit}&page=${page + 1}` : null,
       };
 
-      res.render('products', { products });
+      return response;
     } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: 'Internal Server Error' });
+      throw new Error('Failed to fetch products');
     }
   },
 
-  getProductById: async (req, res) => {
+  getProductById: async (productId) => {
     try {
-      const product = await productService.getProductById(req.params.pid);
-
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      res.json(product);
+      const product = await Product.findById(productId);
+      if (!product) throw new Error('Product not found');
+      return product;
     } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      throw new Error('Failed to fetch product by ID');
     }
   },
 
-  addProduct: async (req, res) => {
+  addProduct: async (productData) => {
     try {
-      const newProduct = await productService.addProduct(req.body);
-      res.status(201).json(newProduct);
+      const newProduct = new Product(productData);
+      return await newProduct.save();
     } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      throw new Error('Failed to add product');
     }
   },
 
-  updateProduct: async (req, res) => {
+  updateProduct: async (productId, updatedProductData) => {
     try {
-      const { pid } = req.params;
-      const updatedProduct = req.body;
-
-      const product = await productService.updateProduct(pid, updatedProduct);
-
-      if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      res.json(product);
+      const updatedProduct = await Product.findByIdAndUpdate(productId, updatedProductData, { new: true });
+      if (!updatedProduct) throw new Error('Product not found');
+      return updatedProduct;
     } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      throw new Error('Failed to update product');
     }
   },
 
-  deleteProduct: async (req, res) => {
+  deleteProduct: async (productId) => {
     try {
-      const { pid } = req.params;
-      const result = await productService.deleteProduct(pid);
-
-      if (!result.success) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      res.json({ message: 'Product deleted successfully' });
+      const deletedProduct = await Product.findByIdAndRemove(productId);
+      if (!deletedProduct) throw new Error('Product not found');
     } catch (error) {
-      res.status(500).json({ error: 'Internal Server Error' });
+      throw new Error('Failed to delete product');
     }
   },
 };
 
-module.exports = productsController;
-
-
-
-
+module.exports = productService;

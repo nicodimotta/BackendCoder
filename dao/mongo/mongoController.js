@@ -1,5 +1,19 @@
 const mongoose = require('mongoose');
 
+// Definir el esquema para User
+const userSchema = new mongoose.Schema({
+  first_name: String,
+  last_name: String,
+  email: { type: String, unique: true },
+  age: Number,
+  password: String,
+  cart: { type: mongoose.Schema.Types.ObjectId, ref: 'Cart' },
+  role: { type: String, default: 'user' }
+});
+
+// Definir el modelo User
+const User = mongoose.model('User', userSchema);
+
 // Definir el esquema para Product
 const productSchema = new mongoose.Schema({
   title: String,
@@ -30,4 +44,5 @@ const messageSchema = new mongoose.Schema({
 // Definir el modelo Message
 const Message = mongoose.model('Message', messageSchema);
 
-module.exports = { Product, Cart, Message };
+module.exports = { User, Product, Cart, Message };
+
